@@ -8,7 +8,7 @@ from ..users import User
 def login():
     form=LoginForm() 
     if form.validate_on_submit():
-        user=User.select_user()
+        user=User.select_user_by_email(form.email.data)
         print('user is None?',user==None)
         print('Verify password is: ',user.verify_password(form.password.data))
         if user is not None and user.verify_password(form.password.data):
