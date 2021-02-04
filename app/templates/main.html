@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}-Home{% endblock %}
+
+
+{% block page_content%}
+<section class="container-sm">
+
+	<h1>Hola, {% if name %}{{name}}{% else %}Invitado{% endif %}</h1>
+
+</section>
+
+
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %} -Login{% endblock %}
+
+
+{% block page_content %}
+
+<div class="container-sm">
+	<div class="row justify-content-center">
+		<div class="card card-body col-5 mt-5" style="height:50rem;">
+			<form action={{url_for('.login')}} method="POST">
+				{{form.hidden_tag()}}
+				<div class="row justify-content-center">
+					{{form.email(placeholder="Email", class="form-control col-10 m-3")}}
+					{{form.password(placeholder="Password", class="form-control col-10 m-3")}}
+					{{form.remember_me(class="form-control col-sm-1 m-1")}}
+					{{form.button(class="btn btn-block btn-success col-4 m-3")}}
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+{% endblock %}

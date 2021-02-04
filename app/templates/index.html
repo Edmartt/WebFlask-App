@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %} -Home{% endblock %}
+
+
+{% block page_content %}
+<h1>Bienvenido, {% if name %}{{name}} <h5>Sesión Iniciada</h5>
+	{% else %}Invitado{% endif %}</h1>
+
+<hr/>
+
+Hello,
+{% if current_user.is_autenthicated %}
+{{current_user.username}}
+{% else %}
+	Stranger
+{% endif %}
+{% endblock %}
