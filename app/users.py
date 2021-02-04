@@ -8,11 +8,11 @@ from werkzeug.security import generate_password_hash,check_password_hash
 
 class User(UserMixin):
 
-    def __init__(self,password,email,id=None,username=None):
-        self.id=id
+    def __init__(self,password,email,username,id=None):
+        self.password_hash=password
         self.username=username
-        self.password=password
         self.email=email
+        self.id=id
 
     @staticmethod
     def select_user_by_email(email):
@@ -24,7 +24,7 @@ class User(UserMixin):
             username=user[1]
             password=user[2]
             email=user[3]
-            return User(password,email,username,id)
+            return User(password,email,id,username)
 
     @staticmethod
     def select_user(id):
@@ -43,11 +43,11 @@ class User(UserMixin):
         cursor.execute('INSERT INTO users(username,password,email) VALUES(%s,%s,%s)',(self.username,self.password_hash,self.email))
         db.connection.commit()
 
-    @property
+   # @property
     def password(self):
         raise AttributeError('Este atributo no se puede leer')
 
-    @password.setter
+    #@password.setter
     def password(self,password):
         self.password_hash=generate_password_hash(password)
 

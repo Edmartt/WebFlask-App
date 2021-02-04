@@ -9,9 +9,9 @@
 <hr/>
 
 Hello,
-{% if current_user.is_autenthicated %}
+{% if current_user.is_authenticated %}
 {{current_user.username}}
 {% else %}
 	Stranger
-{% endif %}
+{% endif %}!
 {% endblock %}
