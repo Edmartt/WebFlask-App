@@ -8,26 +8,28 @@ from werkzeug.security import generate_password_hash,check_password_hash
 
 class User(UserMixin):
 
-    def __init__(self,password,email):
+    def __init__(self,password,email,id=None,username=None):
+        self.id=id
+        self.username=username
         self.password=password
         self.email=email
 
 
-    
-    def select_user(self,email):
+
+    @staticmethod
+    def select_user(id):
         cursor=db.connection.cursor()
-        cursor.execute('SELECT * FROM users WHERE email="{}"'.format(email))
+        cursor.execute('SELECT * FROM users WHERE id="{}"'.format(id))
         user=cursor.fetchone()
         if user:
             id=user[0]
-            return user
-    
-    def get_id(email):
-        cursor=db.connection.cursor()
-        cursor.execute('SELECT id FROM users WHERE email="{}"'.format(email))
-        user_id=cursor.fetchone()
-        if user_id:
-            return user_id
+            username=user[1]
+            password=user[2]
+            email=user[3]
+            result=User(password,email)
+            result.id=id
+            result.username=username
+            return result
 
     def insert_user(self,username,password,email):
         cursor=db.connection.cursor()
@@ -47,4 +49,4 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.get_id(user_id)
+    return User.select_user(user_id)
