@@ -14,7 +14,17 @@ class User(UserMixin):
         self.password=password
         self.email=email
 
-
+    @staticmethod
+    def select_user_by_email(email):
+        cursor=db.connection.cursor()
+        cursor.execute('SELECT * FROM users WHERE email="{}"'.format(email))
+        user=cursor.fetchone()
+        if user:
+            id=user[0]
+            username=user[1]
+            password=user[2]
+            email=user[3]
+            return User(password,email,username,id)
 
     @staticmethod
     def select_user(id):
@@ -26,10 +36,7 @@ class User(UserMixin):
             username=user[1]
             password=user[2]
             email=user[3]
-            result=User(password,email)
-            result.id=id
-            result.username=username
-            return result
+            return User(password,email,username,id)
 
     def insert_user(self,username,password,email):
         cursor=db.connection.cursor()
