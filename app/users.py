@@ -24,7 +24,7 @@ class User(UserMixin):
             username=user[1]
             password=user[2]
             email=user[3]
-            return User(password,email,id,username)
+            return User(password,email,username,id)
 
     @staticmethod
     def select_user(id):
