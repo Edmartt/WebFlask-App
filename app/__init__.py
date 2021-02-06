@@ -1,10 +1,12 @@
 from flask import Flask
 from flask_mysqldb import MySQL
 from flask_login import LoginManager
+from flask_mail import Mail
 from config import config
 import os
 
 db=MySQL()
+mail=Mail()
 
 login_manager=LoginManager()
 login_manager.login_view='auth.login'
@@ -19,6 +21,7 @@ def create_app(config_name):
     app.config['MYSQL_PASSWORD']=os.environ.get('PASSWORD')
     app.config['MYSQL_DB']=os.environ.get('DATABASE')
     db=MySQL(app)
+    mail=Mail(app)
     from .main import main as main_blueprint
     from .auth import auth as auth_blueprint
     app.register_blueprint(main_blueprint)
