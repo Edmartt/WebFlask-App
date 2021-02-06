@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{%block title%}- Register{% endblock %}
+
+{% block page_content%}
+
+<div class="container-sm">
+	<div class="row justify-content-center">
+		<div class="card card-body col-5 mt-5" style="height:50rem;">
+			<form action={{url_for('.register')}} method="POST">
+				{{form.hidden_tag()}}
+				<div class="row justify-content-center">
+					{{form.username(placeholder="Username")}}
+					<!--Muestra los errores en la validación del campo username-->
+					<ul>
+						{% for error in form.username.errors %}
+						<li style="color: red;">{{ error }} </li>
+
+						{% endfor %}
+					</ul>
+
+					{{form.email(placeholder="Email")}}
+					{{form.password(placeholder="Password")}}
+					{{form.password2(placeholder="Confirme el Password")}}	
+					{{form.submit()}}
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+
+
+
+{% endblock %}

@@ -27,6 +27,19 @@ class User(UserMixin):
             return User(password,email,username,id)
 
     @staticmethod
+    def select_user_by_username(username):
+        cursor=db.connection.cursor()
+        cursor.execute('SELECT * FROM users WHERE username="{}"'.format(username))
+        user=cursor.fetchone()
+        if user:
+            id=user[0]
+            username=user[1]
+            password=user[2]
+            email=user[3]
+            return User(password,email,username,id)
+
+
+    @staticmethod
     def select_user(id):
         cursor=db.connection.cursor()
         cursor.execute('SELECT * FROM users WHERE id="{}"'.format(id))
@@ -43,11 +56,11 @@ class User(UserMixin):
         cursor.execute('INSERT INTO users(username,password,email) VALUES(%s,%s,%s)',(self.username,self.password_hash,self.email))
         db.connection.commit()
 
-   # @property
+    @property
     def password(self):
         raise AttributeError('Este atributo no se puede leer')
 
-    #@password.setter
+    @password.setter
     def password(self,password):
         self.password_hash=generate_password_hash(password)
 

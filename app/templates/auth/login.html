@@ -14,6 +14,12 @@
 					{{form.password(placeholder="Password", class="form-control col-10 m-3")}}
 					{{form.remember_me(class="form-control col-sm-1 m-1")}}
 					{{form.button(class="btn btn-block btn-success col-4 m-3")}}
+					<p>
+					¿Nuevo usuario?
+					<a href="{{url_for('auth.register')}}">
+						Click aquí para registrarse
+					</a>
+					</p>
 				</div>
 			</form>
 		</div>

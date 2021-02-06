@@ -2,6 +2,7 @@ from flask import render_template,session,redirect,url_for,request,flash
 from flask_login import login_user,logout_user,login_required
 from . import auth
 from .forms import Formulario as LoginForm
+from .forms import SignupForm
 from ..users import User
 
 @auth.route('/login/',methods=['GET','POST'])
@@ -16,7 +17,6 @@ def login():
         ingresado para comprobar su existencia'''
         user=User.select_user_by_email(form.email.data)
         next=request.args.get('next')
-        print(next)
 
         '''El objeto de usuario contendrá una tupla con los datos consultados, si no es None y si el password envía en forma de hash, coincide con el password almacenado en la base de datos entonces se obtiene el acceso'''
 
@@ -43,3 +43,15 @@ def logout():
     logout_user()
     flash('You have been logged out')
     return redirect(url_for('main.index'))
+
+@auth.route('/register/',methods=["GET","POST"])
+def register():
+    form=SignupForm()
+    if form.validate_on_submit():
+        user=User(form.password.data,form.email.data,form.username.data)
+        user.password=form.password.data #usamos la funcion de convertir password a hash
+        user.insert_user(user.password_hash,user.email,user.username)
+
+        flash('Ahora puedes iniciar sesión')
+        return redirect(url_for('auth.login'))
+    return render_template('auth/register.html',form=form)
