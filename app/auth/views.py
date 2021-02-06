@@ -4,7 +4,7 @@ from . import auth
 from .forms import Formulario as LoginForm
 from .forms import SignupForm
 from ..users import User
-
+from ..email import send_email
 @auth.route('/login/',methods=['GET','POST'])
 def login():
     form=LoginForm()
@@ -51,7 +51,8 @@ def register():
         user=User(form.password.data,form.email.data,form.username.data)
         user.password=form.password.data #usamos la funcion de convertir password a hash
         user.insert_user(user.password_hash,user.email,user.username)
-
-        flash('Ahora puedes iniciar sesión')
-        return redirect(url_for('auth.login'))
+        token=user.generate_confirmation_token()
+        send_email(user.email,'Confirma tu cuenta','auth/email/confirm',user=user,token=token)
+        flash('Se te ha enviado un email de confirmación')
+        return redirect(url_for('main.index'))
     return render_template('auth/register.html',form=form)
