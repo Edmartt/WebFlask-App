@@ -1,10 +1,12 @@
-from flask import render_template,session,redirect,url_for,request,flash
-from flask_login import login_user,logout_user,login_required
+from flask import render_template,session,redirect,url_for,request,flash,current_app
+from flask_login import login_user,logout_user,login_required,current_user
 from . import auth
 from .forms import Formulario as LoginForm
 from .forms import SignupForm
 from ..users import User
 from ..email import send_email
+
+
 @auth.route('/login/',methods=['GET','POST'])
 def login():
     form=LoginForm()
@@ -37,7 +39,7 @@ def login():
         flash('Invalid Username or Password')
     return render_template('auth/login.html',form=form)
 
-@auth.route('/logout')
+@auth.route('/logout/')
 @login_required
 def logout():
     logout_user()
@@ -51,8 +53,35 @@ def register():
         user=User(form.password.data,form.email.data,form.username.data)
         user.password=form.password.data #usamos la funcion de convertir password a hash
         user.insert_user(user.password_hash,user.email,user.username)
+        user=User.select_user_by_email(user.email)
         token=user.generate_confirmation_token()
+        print(token)
+        from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+        s=Serializer(current_app.config['SECRET_KEY'])
+        data=s.loads(token.encode('utf-8'))
+        print(data.get('confirm'))
         send_email(user.email,'Confirma tu cuenta','auth/email/confirm',user=user,token=token)
         flash('Se te ha enviado un email de confirmación')
-        return redirect(url_for('main.index'))
+        return redirect(url_for('auth.login'))
     return render_template('auth/register.html',form=form)
+
+@auth.route('/confirm/<token>/')
+@login_required
+def confirm(token):
+    print(current_user.confirmed)
+    print("Hola")
+    user=User.select_user_by_email
+    current_app.logger.info('entramos en confirm')
+    if current_user.confirmed:
+        print("Estado confirmed: ",current_user.confirmed)
+        return redirect(url_for('main.index'))
+    if current_user.confirm(token):
+        print("Estado confirmed: ",current_user.confirmed)
+        User.change_confirm_state(True)
+        print(user.confirmed)
+        flash('Has confirmado tu cuenta')
+    else:
+        flash('El enlace de confirmación no es válido o ha caducado')
+    return redirect(url_for('main.index'))
+
+
