@@ -8,27 +8,12 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 class User(UserMixin):
 
-    def __init__(self,password,email,username,id=None):
+    def __init__(self,password,email,username,id=None,confirmed=False):
         self.password_hash=password
         self.username=username
         self.email=email
         self.id=id
-        self.confirm=False
-
-
-
-    def generate_confirmation_token(self,expiration=3600):
-        s=Serializer(current_app.config['SECRET_KEY'],expiration)
-        return s.dumps({'confirm':self.id}).decode('utf-8')
-
-
-    def confirm(self,token):
-        s=Serializer(current_app.config['SECRET_KEY'])
-        try:
-            data=s.loads(token.encode('utf-8'))
-        except:
-            return False
-        self.confirm=True
+        self.confirmed=confirmed
 
     @staticmethod
     def select_user_by_email(email):
@@ -53,7 +38,6 @@ class User(UserMixin):
             password=user[2]
             email=user[3]
             return User(password,email,username,id)
-
 
     @staticmethod
     def select_user(id):
@@ -82,6 +66,23 @@ class User(UserMixin):
 
     def verify_password(self,password):
         return check_password_hash(self.password_hash,password)
+
+    def generate_confirmation_token(self,expiration=3600):
+        s=Serializer(current_app.config['SECRET_KEY'],expiration)
+        return s.dumps({'confirm':self.id}).decode('utf-8')
+
+    def confirm(self,token):
+        s=Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data=s.loads(token.encode('utf-8'))
+        except:
+            return False
+        if data.get('confirm') !=self.id:
+            return False
+        self.confirmed=True
+        change_confirm_state(self.confirmed)
+        print("imprimiendo estado: ",self.confirmed)
+        return True
 
 @login_manager.user_loader
 def load_user(user_id):
