@@ -2,7 +2,9 @@
 
 Dear <b>{{ user.username }}</b>,
 <h2>Welcome to Flasky!</h2>
-<br/>To confirm your account please click on the following link:
+<br/><p>To confirm your account please click on the following link: <p>To confirm your account please <a href="{{ url_for('auth.confirm', token=token, _external=True) }}">click here</a>.</p>
+
+<br/>
 {{ url_for('auth.confirm', token=token, _external=True) }}
 <br/>Sincerely,
 The Flasky Team

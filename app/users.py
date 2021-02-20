@@ -8,7 +8,7 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 class User(UserMixin):
 
-    def __init__(self,password,email,username,id=None,confirmed=False):
+    def __init__(self,password,email,username,confirmed,id=None):
         self.password_hash=password
         self.username=username
         self.email=email
@@ -25,7 +25,8 @@ class User(UserMixin):
             username=user[1]
             password=user[2]
             email=user[3]
-            return User(password,email,username,id)
+            confirmed=user[4]
+            return User(password,email,username,confirmed,id)
 
     @staticmethod
     def select_user_by_username(username):
@@ -37,6 +38,7 @@ class User(UserMixin):
             username=user[1]
             password=user[2]
             email=user[3]
+            confirmed=user[4]
             return User(password,email,username,id)
 
     @staticmethod
@@ -49,11 +51,12 @@ class User(UserMixin):
             username=user[1]
             password=user[2]
             email=user[3]
-            return User(password,email,username,id)
+            confirmed=user[4]
+            return User(password,email,username,confirmed,id)
 
-    def insert_user(self,username,password,email):
+    def insert_user(self,username,password,email,confirmed):
         cursor=db.connection.cursor()
-        cursor.execute('INSERT INTO users(username,password,email) VALUES(%s,%s,%s)',(self.username,self.password_hash,self.email))
+        cursor.execute('INSERT INTO users(username,password,email,confirmed) VALUES(%s,%s,%s,%s)',(self.username,self.password_hash,self.email,self.confirmed))
         db.connection.commit()
 
     @property
@@ -79,10 +82,21 @@ class User(UserMixin):
             return False
         if data.get('confirm') !=self.id:
             return False
-        self.confirmed=True
-        change_confirm_state(self.confirmed)
         print("imprimiendo estado: ",self.confirmed)
         return True
+
+    @staticmethod
+    def id_decoder(token):
+        s=Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data=s.loads(token.encode('utf-8'))
+            return data.get('confirm')
+        except:
+            return None
+    def change_confirm_state(self,id,confirmed):
+        cursor=db.connection.cursor()
+        cursor.execute('UPDATE users SET confirmed=%s WHERE id=%s',(id,confirmed))
+        db.connection.commit()
 
 @login_manager.user_loader
 def load_user(user_id):
