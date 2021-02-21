@@ -43,22 +43,23 @@ def register():
     return render_template('auth/register.html',form=form)
 
 @auth.route('/confirm/<token>')
-@login_required
 def confirm(token):
-    id=User.id_decoder(token)
-    print(id)
-    user=User.select_user(id)
-    if current_user.confirmed:
-        print("Estado confirmed: ",current_user.confirmed)
-        return redirect(url_for('main.index'))
-    if current_user.confirm(token):
-        print(current_user.confirmed)
-        user.confirmed=True
-        user.change_confirm_state(id,user.confirmed)
-        print(user.confirmed)
-        flash('Has confirmado tu cuenta')
+    user=User.select_user(User.id_decoder(token))
+    if user is not None:
+        if user.confirmed:
+            flash('Tu cuenta ya ha sido confirmada')
+            return redirect(url_for('main.index'))
+
+        if user.confirm(token):
+            user.confirmed=True
+            user.change_confirm_state(user.id,user.confirmed)
+            print(user.confirmed)
+            flash('Has confirmado tu cuenta')
+        else:
+            flash('El enlace de confirmación no es válido o ha caducado')
     else:
-        flash('El enlace de confirmación no es válido o ha caducado')
+        flash('El enlace no es válido')
+        redirect(url_for('main.index'))
     return redirect(url_for('main.index'))
 
 

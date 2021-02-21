@@ -8,7 +8,7 @@
 	<div class="row justify-content-center">
 		<div class="card card-body col-5 mt-5" style="height:50rem;">
 			<form action={{url_for('.login')}} method="POST">
-				{{form.hidden_tag()}}
+				{{form.hidden_tag()}}	
 				<div class="row justify-content-center">
 					{{form.email(placeholder="Email", class="form-control col-10 m-3")}}
 					{{form.password(placeholder="Password", class="form-control col-10 m-3")}}
