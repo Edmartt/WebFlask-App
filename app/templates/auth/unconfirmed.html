@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}-Confirm Account{% endblock %}
+
+{% block page_content %}
+
+<h1>Hola, {{current_user.username}}</h1>
+<br/><h3>Aún no has confirmado tu cuenta</h3>
+		<p>Antes de que puedas hacer uso de nuestro sitio, necesitas confirmar tu cuenta</p><b/>
+			Revisa tu correo, deberías haber recibido un correo con un enlace para confirmar tu cuenta
+			<br/>
+			<p>¿Necesitas otro correo de confirmación? <a href="{{url_for('.resend_confirmation')}}">Reenviar email</a></p>
+
+{% endblock %}
