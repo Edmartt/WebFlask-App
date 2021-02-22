@@ -54,7 +54,7 @@ class User(UserMixin):
             confirmed=user[4]
             return User(password,email,username,confirmed,id)
 
-    def insert_user(self,username,password,email,confirmed):
+    def insert_user(self,user):
         cursor=db.connection.cursor()
         cursor.execute('INSERT INTO users(username,password,email,confirmed) VALUES(%s,%s,%s,%s)',(self.username,self.password_hash,self.email,self.confirmed))
         db.connection.commit()
