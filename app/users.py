@@ -98,6 +98,12 @@ class User(UserMixin):
         cursor.execute('UPDATE users SET confirmed=%s WHERE id=%s',(id,confirmed))
         db.connection.commit()
 
+    def update_password(self,id):
+        cursor=db.connection.cursor()
+        cursor.execute('UPDATE users SET password=%s WHERE id=%s',(self.password_hash,self.id))
+        db.connection.commit()
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.select_user(user_id)
