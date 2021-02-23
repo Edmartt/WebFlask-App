@@ -25,6 +25,8 @@ class SignupForm(FlaskForm):
         if User.select_user_by_username(username=field.data):
             raise ValidationError('Este nombre de usuario ya está registrado')
 
-
-
+class PasswordForm(FlaskForm):
+    current_password=PasswordField('Password',validators=[DataRequired()])
+    newPassword=PasswordField('Nuevo Password',validators=[DataRequired()])
+    submit=SubmitField('Actualizar')
 
