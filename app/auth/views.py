@@ -3,6 +3,7 @@ from flask_login import login_user,logout_user,login_required,current_user
 from . import auth
 from .forms import Formulario as LoginForm
 from .forms import SignupForm
+from .forms import PasswordForm
 from ..users import User
 from ..email import send_email
 
@@ -123,9 +124,25 @@ def unconfirmed():
 
 @auth.route('/confirm')
 def resend_confirmation():
-    token=current_user.generate_confirmation_token()
-    send_email(current_user.email,'Confirma tu cuenta','auth/email/confirm',user=current_user,token=token)
-    flash('Se te ha enviado un nuevo correo electrónico')
-    return redirect(url_for('main.index'))
+    if current_user.is_anonymous:
+        return redirect(url_for('main.index'))
+    else:
+        token=current_user.generate_confirmation_token()
+        send_email(current_user.email,'Confirma tu cuenta','auth/email/confirm',user=current_user,token=token)
+        flash('Se te ha enviado un nuevo correo electrónico')
+        return redirect(url_for('main.index'))
 
-
+@auth.route('/update_password',methods=['GET','POST'])
+@login_required
+def update_password():
+    pasform=PasswordForm()
+    if pasform.validate_on_submit():
+        user=User.select_user(current_user.id)
+        if user.verify_password(paforms.current_password.data):
+            user.password=pasform.newPassword.data
+            user.update_password(current_user.id)
+            flash('Password actualizado')
+            return redirect(url_for('main.index'))
+        else:
+            flash('El password no coincide')
+    return render_template('update_password.html',form=pasform)
