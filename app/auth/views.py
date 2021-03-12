@@ -2,45 +2,38 @@ from flask import render_template,session,redirect,url_for,request,flash,current
 from flask_login import login_user,logout_user,login_required,current_user
 from . import auth
 from .forms import Formulario as LoginForm
-from .forms import SignupForm
-from .forms import PasswordForm
+from .forms import SignupForm,PasswordForm,ResetPassword,ChangePassword
 from ..users import User
 from ..email import send_email
 
 
-'''
-
-Gestiona el inicio de sesión, validando los datos que se enviarán, consultando la base de
-datos a partir del email dado en el campo correspondiente, si se obtienen resultados
-llamamos al método login_user, que recibe el objeto del usuario que iniciará sesión
-y el objeto que permitirá guardar la sesión luego de que el usuario haya cerrado el navegador
-si así lo desea.
-
-next guarda la url que se desea visitar y que está restringida a usuarios registrados
-
-
-'''
-
 @auth.route('/login',methods=['GET','POST'])
 def login():
+    """Gestiona el inicio de sesión, validando los datos que se enviarán, consultando la base de datos a partir del email dado en el campo correspondiente, 
+    si se obtienen resultados llamamos al método login_user, que recibe el objeto del usuario que iniciará sesión y el objeto que permitirá guardar la sesión luego de que el usuario haya cerrado el
+    navegador si así lo desea.
+    next guarda la url que se desea visitar y que está restringida a usuarios registrados"""
+
     form=LoginForm()
     if form.validate_on_submit():
         user=User.select_user_by_email(form.email.data)
         if user is not None and user.verify_password(form.password.data):
-            login_user(user,form.remember_me.data)
             next=request.args.get('next')
+            login_user(user,form.remember_me.data)
+            print(next)
             if next is None or not next.startswith('/'):
                 next=url_for('main.index')
-            return redirect(next)
+                return redirect(next)
+            else:
+                return redirect(next)
         flash('Invalid Username or Password')
     return render_template('auth/login.html',form=form)
 
-'''
+    """
+    Termina la sesión de usuario y redirige al index, que a su vez, si ya no se
+    está autenticado, redirigirá a la página de inicio de sesión.
+    """
 
-Termina la sesión de usuario y redirige al index, que a su vez, si ya no se
-está autenticado, redirigirá a la página de inicio de sesión.
-
-'''
 @auth.route('/logout')
 @login_required
 def logout():
@@ -49,45 +42,46 @@ def logout():
     return redirect(url_for('main.index'))
 
 
-'''
-
-Esta vista gestiona el registro de nuevos usuarios, convierte el password
-enviado por el usuario a hash y envía un email al usuario para corroborar que el email
-es real y así poder confirmar su cuenta.
-
-userFromDatabase corresponde a un objeto a partir de una consulta por medio del email
-registrado y así poder hacer uso del método generate_confirmation_token que requiere de un id
-de usuario
-
-'''
-
 @auth.route('/register',methods=["GET","POST"])
 def register():
-    form=SignupForm()
-    if form.validate_on_submit():
-        user=User(form.password.data,form.email.data,form.username.data,confirmed=False)
-        user.password=form.password.data #usamos la funcion de convertir password a hash
-        user.insert_user(user)
-        userFromDatabase=User.select_user_by_email(user.email)
-        token=userFromDatabase.generate_confirmation_token()
-        send_email(user.email,'Confirma tu cuenta','auth/email/confirm',user=user,token=token)
-        flash('Se te ha enviado un email de confirmación')
-        return redirect(url_for('auth.login'))
-    return render_template('auth/register.html',form=form)
+    """
+    Esta vista gestiona el registro de nuevos usuarios, convierte el password
+    enviado por el usuario a hash y envía un email al usuario para corroborar que el email
+    es real y así poder confirmar su cuenta.
+
+    userFromDatabase corresponde a un objeto a partir de una consulta por medio del email
+    registrado y así poder hacer uso del método generate_confirmation_token que requiere de un id
+    de usuario"""
+
+    #Si el usuario está logueado, solo redirigimos al inicio
+    if current_user.is_authenticated:
+       return redirect(url_for('main.index'))
+    else:
+        form=SignupForm()
+        if form.validate_on_submit():
+            user=User(form.password.data,form.email.data,form.username.data,confirmed=False)
+            user.password=form.password.data #usamos la funcion de convertir password a hash
+            user.insert_user(user)
+            userFromDatabase=User.select_user_by_email(user.email)
+            token=userFromDatabase.generate_confirmation_token()
+            send_email(user.email,'Confirma tu cuenta','auth/email/confirm',user=user,token=token)
+            flash('Se te ha enviado un email de confirmación')
+            return redirect(url_for('auth.login'))
+        return render_template('auth/register.html',form=form)
 
 
-'''
+    """
+    Una vez se ha registrado el usuario y recibido el enlace de confirmación, al dar click
+    este será redirigido a esta vista que cambia el estado del atributo confirmed, haciendo
+    que el usuario actual tenga una cuenta confirmada y por ende dando acceso total a las funciones permitidas
+    
+    La vista recibe un argumento que viene a ser el token generado al registrarse, cuyo contenido
+    es el id de usuario guardado en la base de datos, con dicho id generamos una instancia y usam
+    os el método para buscar al usuario por medio de dicho id, si la búsqueda da resultadosm se 
+    pregunta si el atributo confirmed es verdadero, y si no es así también se comprueba 
+    el valor booleano retornado por el método confirm
+    """
 
-Una vez se ha registrado el usuario y recibido el enlace de confirmación, al dar click
-este será redirigido a esta vista que cambia el estado del atributo confirmed, haciendo
-que el usuario actual tenga una cuenta confirmada y por ende dando acceso total a las funciones
-permitidas
-
-La vista recibe un argumento que viene a ser el token generado al registrarse, cuyo contenido
-es el id de usuario guardado en la base de datos, con dicho id generamos una instancia y usamos el método para buscar al usuario por medio de dicho id, si la búsqueda da resultadosm se pregunta si el atributo confirmed es verdadero, y si no es así también se comprueba el valor booleano retornado
-por el método confirm
-
-'''
 @auth.route('/confirm/<token>')
 def confirm(token):
     user=User.select_user(User.id_decoder(token))
@@ -138,7 +132,7 @@ def update_password():
     pasform=PasswordForm()
     if pasform.validate_on_submit():
         user=User.select_user(current_user.id)
-        if user.verify_password(paforms.current_password.data):
+        if user.verify_password(pasforms.current_password.data):
             user.password=pasform.newPassword.data
             user.update_password(current_user.id)
             flash('Password actualizado')
@@ -146,3 +140,29 @@ def update_password():
         else:
             flash('El password no coincide')
     return render_template('update_password.html',form=pasform)
+
+@auth.route('/request_password_reset',methods=['GET','POST'])
+def request_password_reset():
+    form=ResetPassword()
+    if form.validate_on_submit():
+        user=User.select_user_by_email(form.email.data)
+        token=user.generate_confirmation_token()
+        send_email(form.email.data,'Solicitud de reinicio de password','auth/email/reset_password',user=user,token=token)
+        print("Token: ",token)
+        flash('Se ha enviado un email con instrucciones pare reiniciar tu password')
+    return render_template('request_password_reset.html',form=form)
+
+@auth.route('/reset/<token>',methods=["GET","POST"])
+def reset(token):
+    user=User.select_user(User.id_decoder(token))
+    form=ChangePassword()
+    if user is not None and user.id==User.id_decoder(token):
+        if form.validate_on_submit():
+            user.password=form.newPassword.data
+            user.update_password(user.id)
+            flash('El password ha sido cambiado correctamente')
+
+        return render_template('reset_password.html',form=form,token=token)
+    else:
+        flash("El token no es válido o ha caducado")
+        return redirect(url_for('main.index'))
