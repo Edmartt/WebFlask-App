@@ -10,6 +10,7 @@ class Formulario(FlaskForm):
     button=SubmitField('Ingresar')
     remember_me=BooleanField('Mantener Sesión Iniciada')
 
+
 class SignupForm(FlaskForm):
     username=StringField('Username',validators=[DataRequired(),Length(1,64),Regexp('^[A-Za-z][A-Za-z0-9_.]*$',0,'Los nombres de usuarios solo pueden contener letras, números, puntos o guiones bajos')])
     email=StringField('Email',validators=[DataRequired(),Length(1,64),Email()])
@@ -25,8 +26,19 @@ class SignupForm(FlaskForm):
         if User.select_user_by_username(username=field.data):
             raise ValidationError('Este nombre de usuario ya está registrado')
 
+
 class PasswordForm(FlaskForm):
     current_password=PasswordField('Password',validators=[DataRequired()])
     newPassword=PasswordField('Nuevo Password',validators=[DataRequired()])
     submit=SubmitField('Actualizar')
 
+class ResetPassword(FlaskForm):
+    email=StringField('Email',validators=[DataRequired(),Length(1,64),Email()])
+    submit=SubmitField('Enviar')
+
+    def validate_email(self,field):
+        if User.select_user_by_email(email=field.data.lower())==None:
+            raise ValidationError('El email ingresado no pertecene a un usuario')
+class ChangePassword(FlaskForm):
+    newPassword=PasswordField("Ingrese su nuevo password",validators=[DataRequired()])
+    submit=SubmitField('Enviar')
