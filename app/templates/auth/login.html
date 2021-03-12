@@ -7,7 +7,7 @@
 <div class="container-sm">
 	<div class="row justify-content-center">
 		<div class="card card-body col-5 mt-5" style="height:50rem;">
-			<form action={{url_for('.login')}} method="POST">
+			<form action="" method="POST">
 				{{form.hidden_tag()}}	
 				<div class="row justify-content-center">
 					{{form.email(placeholder="Email", class="form-control col-10 m-3")}}
@@ -19,6 +19,11 @@
 					<a href="{{url_for('auth.register')}}">
 						Click aquí para registrarse
 					</a>
+					</p>
+					<p>
+					¿Olvidaste tu contraseña?
+					<a href="{{url_for('auth.request_password_reset')}}">Click aquí para recuperar</a>
+
 					</p>
 				</div>
 			</form>
