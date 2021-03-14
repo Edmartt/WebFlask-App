@@ -1,0 +1,7 @@
+{{user.username}}, Has solicitado cambiar tu cuenta de correo electrónico
+asociada a tu cuenta en Flasker, te enviamos este email para comprobar que tu nuevo correo está activo
+
+
+Accede al enlace para realizar el cambio de tu cuenta de email:
+{{url_for('auth.change_email',token=token, _external=True)}}
+

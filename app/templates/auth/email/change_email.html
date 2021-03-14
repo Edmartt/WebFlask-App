@@ -1,0 +1,13 @@
+{% block page_content %}
+
+<b>{{user.username}}</b>, <p>Has solicitado cambiar tu cuenta de correo electrónico
+asociada a tu cuenta en <b>Flasker</b>, te enviamos este email para comprobar que tu nuevo correo está activo</p><br/>
+
+<p>
+Accede al enlace para realizar el cambio de tu cuenta de email:
+<b>{{url_for('auth.change_email',token=token, _external=True)}}</b>
+
+</p>
+
+
+{%endblock%}

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}- Change Email{% endblock %}
+
+{% block page_content %}
+<form action="{{url_for('.change_email_request')}}" method="POST">
+	{{form.hidden_tag()}}
+	{{form.current_email(placeholder="Email actual")}}
+	{{form.new_email(placeholder="Nuevo Email")}}
+	{{form.current_password(placeholder="Password actual")}}
+	{{form.submit}}
+
+
+</form>
+
+{% endblock %}
