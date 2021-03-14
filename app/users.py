@@ -8,13 +8,13 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 class User(UserMixin):
 
-    def __init__(self,password,email,username,confirmed,id=None):
+    def __init__(self,password,email,username,confirmed,id=None,pending_email=None):
         self.password_hash=password
         self.username=username
         self.email=email
         self.id=id
         self.confirmed=confirmed
-
+        self.pending_email=pending_email
     @staticmethod
     def select_user_by_email(email):
         cursor=db.connection.cursor()
@@ -52,7 +52,8 @@ class User(UserMixin):
             password=user[2]
             email=user[3]
             confirmed=user[4]
-            return User(password,email,username,confirmed,id)
+            pending_email=user[5]
+            return User(password,email,username,confirmed,id,pending_email)
 
     def insert_user(self,user):
         cursor=db.connection.cursor()
@@ -101,6 +102,15 @@ class User(UserMixin):
     def update_password(self,id):
         cursor=db.connection.cursor()
         cursor.execute('UPDATE users SET password=%s WHERE id=%s',(self.password_hash,self.id))
+        db.connection.commit()
+    def update_email(self,id,email):
+        cursor=db.connection.cursor()
+        cursor.execute('UPDATE users SET email=%s WHERE id=%s',(email,id))
+        db.connection.commit()
+
+    def update_pending_email(self,email,id):
+        cursor=db.connection.cursor()
+        cursor.execute('UPDATE users SET pending_email=%s WHERE id=%s',(email,id))
         db.connection.commit()
 
 
