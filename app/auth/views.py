@@ -2,7 +2,7 @@ from flask import render_template,session,redirect,url_for,request,flash,current
 from flask_login import login_user,logout_user,login_required,current_user
 from . import auth
 from .forms import Formulario as LoginForm
-from .forms import SignupForm,PasswordForm,ResetPassword,ChangePassword
+from .forms import SignupForm,PasswordForm,ResetPassword,ChangePassword,ChangeEmail
 from ..users import User
 from ..email import send_email
 
@@ -102,6 +102,8 @@ def confirm(token):
         redirect(url_for('main.index'))
     return redirect(url_for('main.index'))
 
+
+
 @auth.before_app_request
 def before_request():
     if current_user.is_authenticated \
@@ -110,11 +112,15 @@ def before_request():
             and request.endpoint!='static':
         return redirect(url_for('auth.unconfirmed'))
 
+
+
 @auth.route('/unconfirmed')
 def unconfirmed():
     if current_user.is_anonymous or current_user.confirmed:
         return redirect(url_for('main.index'))
     return render_template('auth/unconfirmed.html')
+
+
 
 @auth.route('/confirm')
 def resend_confirmation():
@@ -125,6 +131,8 @@ def resend_confirmation():
         send_email(current_user.email,'Confirma tu cuenta','auth/email/confirm',user=current_user,token=token)
         flash('Se te ha enviado un nuevo correo electrónico')
         return redirect(url_for('main.index'))
+
+
 
 @auth.route('/update_password',methods=['GET','POST'])
 @login_required
@@ -141,6 +149,8 @@ def update_password():
             flash('El password no coincide')
     return render_template('update_password.html',form=pasform)
 
+
+
 @auth.route('/request_password_reset',methods=['GET','POST'])
 def request_password_reset():
     form=ResetPassword()
@@ -151,6 +161,8 @@ def request_password_reset():
         print("Token: ",token)
         flash('Se ha enviado un email con instrucciones pare reiniciar tu password')
     return render_template('request_password_reset.html',form=form)
+
+
 
 @auth.route('/reset/<token>',methods=["GET","POST"])
 def reset(token):
@@ -165,4 +177,32 @@ def reset(token):
         return render_template('reset_password.html',form=form,token=token)
     else:
         flash("El token no es válido o ha caducado")
+        return redirect(url_for('main.index'))
+
+
+
+@auth.route('/change_email',methods=["GET","POST"])
+@login_required
+def change_email_request():
+    form=ChangeEmail()
+    user=User.select_user_by_email(form.current_email.data)
+    if form.validate_on_submit():
+        token=user.generate_confirmation_token()
+        user.update_pending_email(form.new_email.data,user.id)
+        send_email(form.new_email.data,'Solicitud para cambio de email','auth/email/change_email',user=user,token=token)
+        flash('Se ha enviado un email de confirmación para realizar el cambio al nuevo email')
+    return render_template('change_email.html',form=form)
+
+
+
+@auth.route('/change_email/<token>')
+@login_required
+def change_email(token):
+    user=User.select_user(User.id_decoder(token))
+    if user is not None:
+        user.update_email(user.id,user.pending_email)
+        flash('El email ha sido modificado correctamente')
+        return redirect(url_for('main.index'))
+    else:
+        flash('El token no es válido o ha caducado')
         return redirect(url_for('main.index'))
