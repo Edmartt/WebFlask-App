@@ -42,3 +42,13 @@ class ResetPassword(FlaskForm):
 class ChangePassword(FlaskForm):
     newPassword=PasswordField("Ingrese su nuevo password",validators=[DataRequired()])
     submit=SubmitField('Enviar')
+
+class ChangeEmail(FlaskForm):
+    current_email=StringField('Email',validators=[DataRequired(),Length(1,64),Email()])
+    new_email=StringField('Email',validators=[DataRequired(),Length(1,64),Email()])
+    current_password=PasswordField('Password',validators=[DataRequired()])
+    submit=SubmitField('Actualizar')
+
+    def validate_current_email(self,current_email):
+        if User.select_user_by_email(email=self.current_email.data.lower()==None):
+            raise ValidationError('El email ingresado no existe')
